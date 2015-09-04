@@ -1,0 +1,179 @@
+<?!= HtmlService.createHtmlOutputFromFile('stylesheet').getContent(); ?>
+<div class="contentWindow">
+  <div id="stages">
+    <div class="stageContent nowViewing" id="stageHeader">
+      <h3>Get started...</h3>    
+      <table style="width: 100%">
+        <tr>
+          <td>Unit Title:</td>
+          <td><input type="text" id="unitTitle" placeholder="Unit title"></td>
+        <tr>
+        <tr>
+          <td>Dates:</td>
+          <td><input type="text" id="dateStart" placeholder="Start date"> to <input type="text" id="dateEnd" placeholder="End date"></td>
+        </tr>
+        <tr>
+          <td>Grade Level:</td>
+          <td>
+            <select id="level">
+              <option></option>
+              <option value="5">5th Grade</option>
+            </select>
+          </td>
+        </tr>
+      </table>
+    </div>
+    
+    <div class="stageContent" id="stageOne">
+      <h3>Stage 1: Desired Outcomes</h3>
+      <table width="100%">
+        <tr>
+          <td><h4 class="selectCats" name="objectivesRL">Reading Fiction</h4></td>
+          <td><h4 class="selectCats" name="objectivesRI">Reading Non-Fiction</h4></td>
+          <td><h4 class="selectCats" name="objectivesW">Writing</h4></td>
+          <td><h4 class="selectCats" name="objectivesL">Listening</h4></td>
+          <td><h4 class="selectCats" name="objectivesS">Speaking</h4></td>
+          <td><h4 class="selectCats" name="objectivesG">Grammar</h4></td>
+        </tr>
+
+        <tr>
+          <td><select class="selectBox" id="fiction" size="15" multiple></select></td>
+          <td><select class="selectBox" id="nonfiction" size="15" multiple></select></td>
+          <td><select class="selectBox" id="writing" size="15" multiple></select></td>
+          <td><select class="selectBox" id="listening" size="15" multiple></select></td>
+          <td><select class="selectBox" id="speaking" size="15" multiple></select></td>
+          <td><select class="selectBox" id="grammar" size="15" multiple></select></td>
+        </tr>
+      </table>
+    </div>
+    
+    <div class="stageContent" id="stageOnePartTwo">
+      <h3>Stage 1: Desired Outcomes (continued)</h3>
+      <h4>The boxes below are optional, but if you care to use them make sure you put each point on a different line.</h4>
+      <table width="100%">
+        <tr>
+          <td><h4>Essential Questions</h4></td>
+          <td><h4><i>Students will understand that...</i></h4></td>
+          <td><h4><i>Students will know...</i></h4></td>
+        </tr>
+        <tr>
+          <td><textarea id="textEQ" cols="35"></textarea></td>
+          <td><textarea id="textUN" cols="35"></textarea></td>
+          <td><textarea id="textWK" cols="35"></textarea></td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="stageContent" id="stageTwo">
+      <h3>Stage 2: Assessment Evidence</h3>
+      <select id="tasks" size="15" multiple>
+        <option value="Teacher observations of group discussions">Teacher observations of group discussions</option>
+        <option value="One to one teacher conversations">One to one teacher conversations</option>
+        <option value="Responses to statements and questions">Responses to statements and questions</option>
+        <option value="Multiple choice assessement">Multiple choice assessement</option>
+        <option value="Blog Entry">Blog entry</option>
+        <option value="Group work">Group work</option>
+        <option value="Project">Project</option>
+        <option value="Formal writing assignment">Formal writing assignment</option>
+        <option value="Informal writing assignment">Informal writing assignment</option>
+        <option value="Pair work">Pair work</option>
+      </select>      
+    </div>
+    
+    <div class="stageContent" id="stageThree">
+      <h3>Stage 3: Learning Plan</h3>
+      <h4>Enter the number of lessons that you will be creating for this unit. I will create the table for you in the final document.</h4>
+      <input id="lessons" type="text" integer>
+      <h3>When you are sure that everything is correct, click below to submit the form</h3>
+      <input id="complete" type="button" value="Submit the form">
+    </div>
+  </div>  
+  
+  <div class="stageButtons">      
+    <button class="navButton" type="button" id="previousStage">Go back a stage...</button>
+    <button class="navButton" type="button" id="nextStage">Move to the next stage...</button>  
+  </div>
+
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+<script>
+$(document).ready(function() {
+  var currentStage = 0;
+  
+  //create the select columns for the level selected
+  $('#level').change(function() {
+    google.script.run
+      .withSuccessHandler(function(levelObjectives) {
+        var html = {};
+        
+        for(var key in levelObjectives) {
+          //for each key append it to the select columns
+          for(i = 0; i < levelObjectives[key].length; i++) {
+            html[key] += '<option value="' + levelObjectives[key][i][0] + '_' + levelObjectives[key][i][1] + '">' + levelObjectives[key][i][0] + '</option>';
+          }
+          $('#' + key).append(html[key]);
+        }
+
+      })
+      .getObjectives($(this).val());
+  });
+  
+  //handle the next button click
+  $('#nextStage').click(function() {
+    var currentStage = $('.nowViewing');
+    var nextStage = currentStage.next();
+    
+    if(nextStage.length !== 0) {
+      currentStage.fadeOut(400, function() {
+        nextStage.fadeIn(400).addClass('nowViewing');
+      })
+      .removeClass('nowViewing');
+    }
+  });
+  
+  //handle the previous button click
+  $('#previousStage').click(function() {
+    var currentStage = $('.nowViewing');
+    var prevStage = currentStage.prev();
+    
+    if(prevStage.length !== 0) {
+      currentStage.fadeOut(400, function() {
+          prevStage.fadeIn(400).addClass('nowViewing')
+        })
+        .removeClass('nowViewing');
+    }
+  });
+  
+  //form submission
+  $('#complete').click(function() {
+  
+    var documentData = {
+      title: $('#unitTitle').val(),
+      level: $('#level').val(),
+      startDate: $('#dateStart').val(),
+      endDate: $('#dateEnd').val(),
+      tasks: $('#tasks').val(),
+      lessons: $('#lessons').val(),
+      objectivesArray: [
+        $('#fiction').val(),
+        $('#nonfiction').val(),
+        $('#writing').val(),
+        $('#listening').val(),
+        $('#speaking').val(),
+        $('#grammar').val(),
+        $('#textEQ').val().split('\n'),
+        $('#textWK').val().split('\n'),
+        $('#textUN').val().split('\n')
+      ]
+    };
+    
+    google.script.run
+      .withSuccessHandler(function() {
+        google.script.host.close();
+      })
+      .createDocument(documentData);
+  });
+
+});
+</script>
